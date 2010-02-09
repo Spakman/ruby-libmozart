@@ -9,6 +9,8 @@ module Mozart
   # in C. If libmozart becomes multi-playlist capable then this will change
   # too.
   class Playlist
+    attr_accessor :owner, :tracks
+
     include Singleton
 
     extend FFI::Library
@@ -20,6 +22,7 @@ module Mozart
     attach_function :unshuffle, :mozart_unshuffle, [], :void
     attach_function :mozart_playlist_shuffled, [], :bool
     attach_function :size, :mozart_get_playlist_size, [], :int
+    attach_function :position, :mozart_get_playlist_position, [], :int
 
     alias_method :shuffled?, :mozart_playlist_shuffled
 
@@ -38,10 +41,12 @@ module Mozart
 
     def initialize
       @rock_and_roll_called = false
+      @tracks = []
     end
 
     def clear!
       @rock_and_roll_called = false
+      @tracks = []
       mozart_quiesce
     end
 
@@ -50,14 +55,23 @@ module Mozart
     # again would skip a track.
     def rock_and_roll
       unless @rock_and_roll_called
-        mozart_rock_and_roll
+         mozart_rock_and_roll
       end
     end
 
-    # Add the URI to the playlist and return the Mozart::Playlist.
-    def <<(uri)
-      append uri
+    # Add the track to the playlist and return the Mozart::Playlist.
+    def <<(track)
+      if track.respond_to? :url
+        append track.url
+        @tracks << track
+      else
+        append track
+      end
       self
+    end
+
+    def current_track
+      @tracks[position-1]
     end
   end
 end

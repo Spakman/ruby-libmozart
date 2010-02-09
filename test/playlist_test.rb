@@ -1,12 +1,11 @@
-puts ENV["LD_LIBRARY_PATH"]
-ENV["LD_LIBRARY_PATH"] += ":#{File.expand_path("../")}"
-puts ENV["LD_LIBRARY_PATH"]
-
 require "test/unit"
 require_relative "../lib/playlist"
 
-
 class PlaylistTest < Test::Unit::TestCase
+
+  def teardown
+    Mozart::Playlist.clear!
+  end
 
   def test_create_without_uris
     playlist = Mozart::Playlist.instance
@@ -16,7 +15,7 @@ class PlaylistTest < Test::Unit::TestCase
 
   def test_clear_playlist
     playlist = Mozart::Playlist.instance
-    playlist << "track1" << "track2"
+    playlist << Struct.new(:url).new("track1") <<  Struct.new(:url).new("track2")
     assert_equal 2, playlist.size
     playlist.clear!
     assert_equal 0, playlist.size
@@ -24,14 +23,14 @@ class PlaylistTest < Test::Unit::TestCase
 
   def test_shuffle_playlist
     playlist = Mozart::Playlist.instance
-    playlist << "track1" << "track2"
+    playlist << Struct.new(:url).new("track1") <<  Struct.new(:url).new("track2")
     playlist.shuffle
     assert playlist.shuffled?
   end
 
   def test_unshuffle_playlist
     playlist = Mozart::Playlist.instance
-    playlist << "track1" << "track2"
+    playlist << Struct.new(:url).new("track1") <<  Struct.new(:url).new("track2")
     playlist.shuffle
     playlist.unshuffle
     refute playlist.shuffled?

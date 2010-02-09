@@ -14,6 +14,8 @@ module Mozart
     attach_function :mozart_init, [ :pointer, :pointer ], :void
     attach_function :quiesce, :mozart_quiesce, [], :void
     attach_function :play_or_pause, :mozart_play_pause, [], :void
+    attach_function :next_track, :mozart_next_track, [], :void
+    attach_function :previous_track, :mozart_prev_track, [], :void
     attach_function :player_state, :mozart_get_player_state, [], :gst_state
 
     def initialize
