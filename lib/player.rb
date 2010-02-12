@@ -17,6 +17,8 @@ module Mozart
     attach_function :next_track, :mozart_next_track, [], :void
     attach_function :previous_track, :mozart_prev_track, [], :void
     attach_function :player_state, :mozart_get_player_state, [], :gst_state
+    attach_function :mozart_get_stream_duration_hms, [ :pointer, :pointer, :pointer ], :int
+    attach_function :mozart_get_stream_position_hms, [ :pointer, :pointer, :pointer ], :int
 
     def initialize
       mozart_init nil, nil
@@ -47,6 +49,22 @@ module Mozart
 
     def paused?
       player_state == :paused
+    end
+
+    def duration
+      hours = FFI::MemoryPointer.new(:pointer)
+      minutes = FFI::MemoryPointer.new(:pointer)
+      seconds = FFI::MemoryPointer.new(:pointer)
+      while mozart_get_stream_duration_hms(hours, minutes, seconds) < 0; end
+      "#{hours.read_int}:#{minutes.read_int.to_s.rjust(2, "0")}:#{seconds.read_int.to_s.rjust(2, "0")}"
+    end
+
+    def position
+      hours = FFI::MemoryPointer.new(:pointer)
+      minutes = FFI::MemoryPointer.new(:pointer)
+      seconds = FFI::MemoryPointer.new(:pointer)
+      mozart_get_stream_position_hms(hours, minutes, seconds)
+      "#{hours.read_int}:#{minutes.read_int.to_s.rjust(2, "0")}:#{seconds.read_int.to_s.rjust(2, "0")}"
     end
   end
 end
