@@ -9,69 +9,65 @@ module Mozart
   # in C. If libmozart becomes multi-playlist capable then this will change
   # too.
   class Playlist
-    attr_accessor :owner, :tracks
-
-    include Singleton
+    attr_accessor :tracks
+    attr_reader :name
 
     extend FFI::Library
     ffi_lib "mozart"
-    attach_function :append, :mozart_add_uri_to_playlist, [ :string ], :void
-    attach_function :mozart_rock_and_roll, [], :void
-    attach_function :mozart_quiesce, [], :void
+    attach_function :append, :mozart_add_uri_to_playlist, [ :string, :string ], :void
     attach_function :shuffle, :mozart_shuffle, [], :void
     attach_function :unshuffle, :mozart_unshuffle, [], :void
     attach_function :mozart_playlist_shuffled, [], :bool
     attach_function :size, :mozart_get_playlist_size, [], :int
     attach_function :position, :mozart_get_playlist_position, [], :int
+    attach_function :mozart_get_active_playlist_name, [], :string
+    attach_function :mozart_init_playlist, [ :string ], :int
+    attach_function :mozart_remove_playlist, [ :string ], :int
 
     alias_method :shuffled?, :mozart_playlist_shuffled
 
-    class << self
-      alias_method :old_instance, :instance
-      alias_method :clear!, :mozart_quiesce
-
-      # Ensure that mozart_init() has been called (and was called only
-      # once) using Mozart::Player.instance. Then clear the playlist
-      # and get ready to start fresh.
-      def instance
-        player = Mozart::Player.instance
-        old_instance
-      end
-    end
-
-    def initialize
-      @rock_and_roll_called = false
+    def initialize(name)
+      Mozart::Player.instance
       @tracks = []
+      if mozart_init_playlist(name) == 0
+        @name = name
+      else
+        raise "Already a playlist called #{name}"
+      end
     end
 
     def clear!
-      @rock_and_roll_called = false
       @tracks = []
-      mozart_quiesce
-    end
-
-    # Starts the ball rolling, by giving the player a URI. Should only
-    # be called once when playing a fresh playlist, since calling it
-    # again would skip a track.
-    def rock_and_roll
-      unless @rock_and_roll_called
-         mozart_rock_and_roll
-      end
+      mozart_remove_playlist(@name)
+      mozart_init_playlist(@name)
     end
 
     # Add the track to the playlist and return the Mozart::Playlist.
     def <<(track)
       if track.respond_to? :url
-        append track.url
+        append track.url, @name
         @tracks << track
       else
-        append track
+        append track, @name
+        @tracks << track
       end
       self
     end
 
+    def empty?
+      @tracks.size == 0
+    end
+
     def current_track
       @tracks[position-1]
+    end
+
+    def size
+      @tracks.size
+    end
+
+    def active?
+      mozart_get_active_playlist_name == @name
     end
   end
 end

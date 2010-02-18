@@ -19,19 +19,19 @@ module Mozart
     attach_function :player_state, :mozart_get_player_state, [], :gst_state
     attach_function :mozart_get_stream_duration_hms, [ :pointer, :pointer, :pointer ], :int
     attach_function :mozart_get_stream_position_hms, [ :pointer, :pointer, :pointer ], :int
+    attach_function :mozart_switch_playlist, [ :string ], :int
 
     def initialize
       mozart_init nil, nil
     end
 
-    def playlist
-      @playlist ||= Mozart::Playlist.instance
+    def playlist=(playlist)
+      mozart_switch_playlist playlist.name
     end
 
     # Ensures the player is playing.
     def play
       unless playing?
-        playlist.rock_and_roll # this is safe to call more than once
         play_or_pause
       end
     end
