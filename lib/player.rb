@@ -12,7 +12,7 @@ module Mozart
     enum :gst_state, [ :pending, :null, :ready, :paused, :playing ]
 
     attach_function :mozart_init, [ :pointer, :pointer ], :void
-    attach_function :mozart_current_uri, [], :string
+    attach_function :mozart_get_current_uri, [], :string
     attach_function :quiesce, :mozart_quiesce, [], :void
     attach_function :play_or_pause, :mozart_play_pause, [], :void
     attach_function :next_track, :mozart_next_track, [], :void

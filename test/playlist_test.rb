@@ -28,23 +28,25 @@ class PlaylistTest < Test::Unit::TestCase
   end
 
   def test_shuffle_playlist
-    @playlist = Mozart::Playlist.new("test")
-    @playlist << Struct.new(:url).new("track1") <<  Struct.new(:url).new("track2")
-    @playlist.shuffle
-    assert @playlist.shuffled?
+    playlist = Mozart::Playlist.new("test")
+    Mozart::Player.instance.playlist = playlist
+    sleep 0.3
+    playlist << Struct.new(:url).new("track1") <<  Struct.new(:url).new("track2")
+    playlist.shuffle
+    assert playlist.shuffled?
   end
 
   def test_unshuffle_playlist
-    @playlist = Mozart::Playlist.new("test")
-    @playlist << Struct.new(:url).new("track1") <<  Struct.new(:url).new("track2")
-    @playlist.shuffle
-    @playlist.unshuffle
-    refute @playlist.shuffled?
+    playlist = Mozart::Playlist.new("test")
+    playlist << Struct.new(:url).new("track1") <<  Struct.new(:url).new("track2")
+    playlist.shuffle
+    playlist.unshuffle
+    refute playlist.shuffled?
   end
 
   def test_duplicate_playlist_name
-    @playlist = Mozart::Playlist.new("test")
-    assert_raises(RuntimeError) { @playlist = Mozart::Playlist.new("test") }
+    playlist = Mozart::Playlist.new("test")
+    assert_raises(RuntimeError) { playlist = Mozart::Playlist.new("test") }
   end
 
   def test_active?

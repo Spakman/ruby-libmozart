@@ -59,7 +59,7 @@ module Mozart
     end
 
     def current_track
-      @tracks[position-1]
+      @tracks[Mozart::Player.instance.mozart_get_current_uri]
     end
 
     def size
