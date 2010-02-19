@@ -27,8 +27,8 @@ module Mozart
     alias_method :shuffled?, :mozart_playlist_shuffled
 
     def initialize(name)
-      Mozart::Player.instance
-      @tracks = []
+      Mozart::Player.instance # ensure libmozart stuff is initialised
+      @tracks = {}
       if mozart_init_playlist(name) == 0
         @name = name
       else
