@@ -3,11 +3,6 @@ require "ffi"
 require_relative "player"
 
 module Mozart
-  # Mozart::Playlist is a singleton since libmozart is currently based on a
-  # single playlist. I couldn't work out how to implement multiple playlists in
-  # Ruby in a solid enough way and map them to the single playlist that is used
-  # in C. If libmozart becomes multi-playlist capable then this will change
-  # too.
   class Playlist
     attr_accessor :tracks
     attr_reader :name
@@ -26,48 +21,55 @@ module Mozart
 
     alias_method :shuffled?, :mozart_playlist_shuffled
 
-    def initialize(name)
+    def initialize
       Mozart::Player.instance # ensure libmozart stuff is initialised
       @tracks = {}
-      if mozart_init_playlist(name) == 0
-        @name = name
-      else
-        raise "Already a playlist called #{name}"
+      @name = object_id.to_s
+      if mozart_init_playlist(@name) == 1
+        raise "Already a playlist called #{@name}"
       end
+      ObjectSpace.define_finalizer(self, self.class.method(:finalize).to_proc)
     end
 
-    def clear!
-      @tracks = []
-      mozart_remove_playlist(@name)
-      mozart_init_playlist(@name)
+    # Removes the playlist from libmozart when this instance is garbage
+    # collected.
+    def self.finalize(id)
+      mozart_remove_playlist id.to_s
     end
 
     # Add the track to the playlist and return the Mozart::Playlist.
+    #
+    # The passed track can be a Messier::Track object or a string (like a
+    # stream URL).
     def <<(track)
       if track.respond_to? :url
         append track.url, @name
-        @tracks << track
+        @tracks[track.url] = track
       else
         append track, @name
-        @tracks << track
+        @tracks[track] = track
       end
       self
     end
 
     def empty?
-      @tracks.size == 0
+      size == 0
     end
 
     def current_track
       @tracks[Mozart::Player.instance.mozart_get_current_uri]
     end
 
-    def size
-      @tracks.size
-    end
-
     def active?
       mozart_get_active_playlist_name == @name
+    end
+
+    def toggle_shuffled_state
+      if shuffled?
+        unshuffle
+      else
+        shuffle
+      end
     end
   end
 end
