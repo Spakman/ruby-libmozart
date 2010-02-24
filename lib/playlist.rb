@@ -55,7 +55,11 @@ module Mozart
     end
 
     def current_track
-      @tracks[Mozart::Player.instance.mozart_get_current_uri]
+      if size > 0
+        @tracks[Mozart::Player.instance.mozart_get_current_uri]
+      else
+        nil
+      end
     end
 
     def active?
