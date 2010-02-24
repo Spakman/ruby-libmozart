@@ -10,16 +10,14 @@ module Mozart
     extend FFI::Library
     ffi_lib "mozart"
     attach_function :append, :mozart_add_uri_to_playlist, [ :string, :string ], :void
-    attach_function :shuffle, :mozart_shuffle, [], :void
-    attach_function :unshuffle, :mozart_unshuffle, [], :void
-    attach_function :mozart_playlist_shuffled, [], :bool
+    attach_function :shuffle, :mozart_shuffle, [ :string ], :void
+    attach_function :unshuffle, :mozart_unshuffle, [ :string ], :void
+    attach_function :mozart_playlist_shuffled, [ :string ], :bool
     attach_function :size, :mozart_get_playlist_size, [], :int
     attach_function :position, :mozart_get_playlist_position, [], :int
     attach_function :mozart_get_active_playlist_name, [], :string
     attach_function :mozart_init_playlist, [ :string ], :int
     attach_function :mozart_remove_playlist, [ :string ], :int
-
-    alias_method :shuffled?, :mozart_playlist_shuffled
 
     def initialize
       Mozart::Player.instance # ensure libmozart stuff is initialised
@@ -64,11 +62,15 @@ module Mozart
       mozart_get_active_playlist_name == @name
     end
 
+    def shuffled?
+      mozart_playlist_shuffled @name
+    end
+
     def toggle_shuffled_state
       if shuffled?
-        unshuffle
+        unshuffle @name
       else
-        shuffle
+        shuffle @name
       end
     end
   end

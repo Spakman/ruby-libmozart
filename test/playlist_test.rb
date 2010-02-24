@@ -18,7 +18,7 @@ class PlaylistTest < Test::Unit::TestCase
     playlist << Struct.new(:url).new("file://#{File.expand_path(File.dirname(__FILE__))}/dlanod.ogg")
     playlist << Struct.new(:url).new("file://more_music")
     Mozart::Player.instance.playlist = playlist
-    playlist.shuffle
+    playlist.toggle_shuffled_state
     assert playlist.shuffled?
   end
 
@@ -27,8 +27,8 @@ class PlaylistTest < Test::Unit::TestCase
     playlist << Struct.new(:url).new("file://#{File.expand_path(File.dirname(__FILE__))}/dlanod.ogg")
     playlist << Struct.new(:url).new("file://more_music")
     Mozart::Player.instance.playlist = playlist
-    playlist.shuffle
-    playlist.unshuffle
+    playlist.toggle_shuffled_state
+    playlist.toggle_shuffled_state
     refute playlist.shuffled?
   end
 
